@@ -1,0 +1,69 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+
+<div class="page-wrapper">
+    <div class="page-header">
+        <h1>Agendamentos</h1>
+        <p class="subtitle">Gerencie os agendamentos do salão</p>
+    </div>
+    <div class="container">
+        <div class="admin-nav">
+            <a href="/admin/novoservico" class="btn btn-outline">✂️ Serviços</a>
+            <a href="/admin/ganhos" class="btn btn-outline">💰 Ganhos</a>
+            <a href="/agendar" class="btn btn-outline">📅 Agendar</a>
+            <a href="/admin/logout" class="btn btn-danger" style="padding:10px 20px;font-size:13px;">🚪 Sair</a>
+        </div>
+        <% if (ocupados && ocupados.length > 0) { %>
+        <div class="card">
+            <h2>Dias sem atendimento</h2>
+            <div class="ocupados-list">
+                <% ocupados.forEach(ocupado => { %>
+                <span class="ocupado-tag">🔴 <%= ocupado.diaOcupado %><% if(ocupado.horarioOcupado){%> — <%= ocupado.horarioOcupado %><% } %><% if(ocupado.diaInteiro==1){%> (dia inteiro)<% } %></span>
+                <% }) %>
+            </div>
+        </div>
+        <% } %>
+        <div class="card">
+            <h2>Próximos Agendamentos</h2>
+            <% if (agendamentos.length === 0) { %>
+                <div class="empty-state"><div class="empty-icon">📅</div><p>Nenhum agendamento encontrado.</p></div>
+            <% } else { %>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cliente</th><th>Telefone</th><th>Serviço</th><th>Data</th><th>Horário</th><th>Valor</th><th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% agendamentos.forEach(agendamento => { %>
+                            <tr>
+                                <td><strong><%= agendamento.nomeCliente %></strong></td>
+                                <td><a href="https://wa.me/55<%= agendamento.telefoneCliente.replace(/\D/g,'') %>" target="_blank" style="color:#D9D197;">📱 <%= agendamento.telefoneCliente %></a></td>
+                                <td><%= agendamento.servico ? agendamento.servico.nomeServico : '—' %></td>
+                                <td><%= agendamento.data %></td>
+                                <td><%= agendamento.horario %></td>
+                                <td>R$ <%= agendamento.valor ? (agendamento.valor / 100).toFixed(2).replace('.',',') : '—' %></td>
+                                <td>
+                                    <form method="POST" action="/admin/agendamentos/deletar" onsubmit="return confirmarDelecao(event,this)">
+                                        <input type="hidden" name="id" value="<%= agendamento.id %>">
+                                        <button type="submit" class="btn-danger">🗑 Excluir</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer.ejs') %>
+<script>
+    function confirmarDelecao(event, form) {
+        event.preventDefault();
+        if (confirm("Deseja cancelar este agendamento?")) form.submit();
+    }
+</script>

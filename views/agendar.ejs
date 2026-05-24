@@ -1,0 +1,121 @@
+<%- include('partials/header.ejs') %>
+<%- include('partials/navbar.ejs') %>
+
+<div class="page-wrapper">
+    <div class="page-header">
+        <h1>Faça seu Agendamento</h1>
+        <p class="subtitle">Preencha os dados abaixo para reservar seu horário</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Dados do Agendamento</h2>
+            <form method="post" action="/agendamento/salvar">
+                <div class="form-group">
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="nome">Seu nome</label>
+                            <input type="text" id="nome" name="nome" placeholder="Digite seu nome completo" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="telefone">Telefone / WhatsApp</label>
+                            <input type="text" id="telefone" name="telefone" placeholder="(11) 99999-9999" required>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label for="servico">Serviço desejado</label>
+                        <select name="servico" id="servico" required>
+                            <option value="">Escolha um serviço</option>
+                            <% servicos.forEach(servico => { %>
+                            <option value="<%= servico.id %>">
+                                <%= servico.nomeServico %> — R$ <%= (servico.valorServico / 100).toFixed(2).replace('.',',') %>
+                            </option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="dataAgendamento">Data</label>
+                            <input type="date" name="data" id="dataAgendamento" onchange="buscarHorarios(this.value)" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="selectHorarios">Horário</label>
+                            <select id="selectHorarios" name="horario" required disabled>
+                                <option value="">Selecione uma data primeiro</option>
+                                <option value="08:00">08:00</option>
+                                <option value="09:00">09:00</option>
+                                <option value="10:00">10:00</option>
+                                <option value="11:00">11:00</option>
+                                <option value="12:00">12:00</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Confirmar Agendamento</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Tabela de Serviços</h2>
+            <div class="servicos-grid">
+                <% servicos.forEach(servico => { %>
+                <div class="servico-card">
+                    <div class="nome-servico"><%= servico.nomeServico %></div>
+                    <div class="valor-servico"><%= (servico.valorServico / 100).toFixed(2).replace('.',',') %></div>
+                    <div class="valor-label">Valor em reais</div>
+                </div>
+                <% }) %>
+                <% if (servicos.length === 0) { %>
+                <div class="empty-state"><div class="empty-icon">✂️</div><p>Nenhum serviço cadastrado</p></div>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="alert alert-info">
+            📱 Assim que possível, o profissional responsável entrará em contato com você para confirmar o agendamento!
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer.ejs') %>
+
+<script>
+    const campo = document.getElementById('dataAgendamento');
+    campo.min = new Date().toISOString().split("T")[0];
+
+    async function buscarHorarios(dataSelecionada) {
+        const selectHorarios = document.getElementById('selectHorarios');
+        const dataObjeto = new Date(dataSelecionada + 'T00:00:00');
+        const diaSemana = dataObjeto.getDay();
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        if (!dataSelecionada) return;
+        try {
+            const resposta = await fetch(`/admin/verificar-data?data=${dataSelecionada}`);
+            const resultado = await resposta.json();
+            const agendado = resultado.agendado;
+            const ocupado = resultado.ocupado;
+            const horarios = [...agendado.map(i=>i.horario), ...ocupado.map(i=>i.horarioOcupado)];
+            const opcoes = selectHorarios.options;
+
+            function trazerHorarios() {
+                for (let i = 0; i < opcoes.length; i++) {
+                    if (horarios.includes(opcoes[i].value)) {
+                        opcoes[i].disabled = true; opcoes[i].style.color = '#e74c3c';
+                    } else {
+                        opcoes[i].disabled = false; opcoes[i].style.color = '';
+                    }
+                }
+            }
+
+            if (dataObjeto < hoje) { alert("Não é possível selecionar uma data passada!"); selectHorarios.disabled = true; return; }
+            if (diaSemana === 0) { alert("Não trabalhamos aos domingos. Escolha outro dia!"); selectHorarios.disabled = true; return; }
+            if (ocupado.length > 0 && ocupado[0].diaInteiro == 1) { alert("Este dia está sem atendimento."); selectHorarios.disabled = true; return; }
+            selectHorarios.disabled = false;
+            if (agendado.length === 0 && ocupado.length === 0) {
+                for (let i=0;i<opcoes.length;i++) { opcoes[i].disabled=false; opcoes[i].style.color=''; }
+                return;
+            }
+            trazerHorarios();
+        } catch(e) { console.error(e); }
+    }
+</script>

@@ -1,0 +1,38 @@
+<body>
+<!-- MENU LATERAL MOBILE -->
+<nav class="menu-lateral" id="menuLateral">
+    <img src="/imgs/logo-salao.png" alt="Logo" class="logo-menu" onclick="fecharMenu()">
+    <a href="/" class="topico-menu">HOME</a>
+    <a href="/agendar" class="topico-menu">AGENDAR</a>
+    <a href="/admin/novoservico" class="topico-menu">SERVIÇOS</a>
+    <a href="/admin/agendamentos" class="topico-menu">AGENDAMENTOS</a>
+</nav>
+
+<!-- NAVBAR FIXA -->
+<nav class="navbar">
+    <img src="/imgs/logo-salao.png" alt="Logo" class="logo">
+    <div class="container-fluid">
+        <a href="/" class="topico-menu">HOME</a>
+        <a href="/agendar" class="topico-menu">AGENDAR</a>
+        <a href="/admin/novoservico" class="topico-menu">SERVIÇOS</a>
+        <a href="/admin/agendamentos" class="topico-menu">AGENDAMENTOS</a>
+    </div>
+    <img src="/imgs/icone-menu.png" alt="Menu" class="menu" id="btnMenu" onclick="abrirMenu()">
+</nav>
+
+<script>
+    function abrirMenu() {
+        document.getElementById('menuLateral').style.display = 'flex';
+    }
+    function fecharMenu() {
+        document.getElementById('menuLateral').style.display = 'none';
+    }
+    // fechar menu clicando fora
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('menuLateral');
+        const btn = document.getElementById('btnMenu');
+        if (menu && menu.style.display === 'flex' && !menu.contains(e.target) && e.target !== btn) {
+            menu.style.display = 'none';
+        }
+    });
+</script>
