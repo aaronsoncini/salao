@@ -33,11 +33,21 @@ router.post("/agendamento/salvar", async (req, res) => {
             nomeCliente: nome,
             telefoneCliente: telefone,
             servicoId: servico,
-            data,
-            horario,
-            valor
-        });
-        res.redirect("/agendar");
+            data:data,
+            horario:horario,
+            valor:valor
+        }).then(() =>{
+            const numeroSalao = '5511976689903'
+            const msg = `Olá, sou o ${nome} e agendei um serviço para ${data}, aguardo sua confirmação!`
+
+            const msgCodificada = encodeURIComponent(msg);
+
+            const urlWpp =  `https://wa.me/${numeroSalao}?text=${msgCodificada}`;
+
+            res.redirect(urlWpp);
+        })
+
+        
     } else {
         res.redirect("/agendar");
     }
